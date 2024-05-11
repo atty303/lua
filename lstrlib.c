@@ -917,9 +917,10 @@ static int str_format (lua_State *L) {
         case 'd': case 'i': {
           lua_Number n = luaL_checknumber(L, arg);
           LUA_INTFRM_T ni = (LUA_INTFRM_T)n;
-          lua_Number diff = n - (lua_Number)ni;
-          luaL_argcheck(L, -1 < diff && diff < 1, arg,
-                        "not a number in proper range");
+          // COMPATIBILITY: Lua 5.1
+//          lua_Number diff = n - (lua_Number)ni;
+//          luaL_argcheck(L, -1 < diff && diff < 1, arg,
+//                        "not a number in proper range");
           addlenmod(form, LUA_INTFRMLEN);
           nb = sprintf(buff, form, ni);
           break;
