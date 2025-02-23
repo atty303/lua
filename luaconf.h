@@ -11,6 +11,7 @@
 #include <limits.h>
 #include <stddef.h>
 
+#include <emscripten.h>
 
 /*
 ** ==================================================================
@@ -150,7 +151,7 @@
 
 #else				/* }{ */
 
-#define LUA_API		extern
+#define LUA_API		 EMSCRIPTEN_KEEPALIVE
 
 #endif				/* } */
 
