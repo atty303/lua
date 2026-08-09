@@ -199,10 +199,10 @@ static int computesizes (int nums[], int *narray) {
   int a = 0;  /* number of elements smaller than 2^i */
   int na = 0;  /* number of elements to go to array part */
   int n = 0;  /* optimal size for array part */
-  for (i = 0, twotoi = 1; twotoi/2 < *narray; i++, twotoi *= 2) {
+  for (i = 0, twotoi = 1; twotoi/2 <= *narray; i++, twotoi *= 2) {
     if (nums[i] > 0) {
       a += nums[i];
-      if (a > twotoi/2) {  /* more than half elements present? */
+      if (a >= twotoi/2) {  /* at least half elements present? */
         n = twotoi;  /* optimal size (till now) */
         na = a;  /* all elements smaller than n will go to array part */
       }
