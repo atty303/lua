@@ -113,7 +113,9 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
     const TValue *tm;
     if (ttistable(t)) {  /* `t' is a table? */
       Table *h = hvalue(t);
-      const TValue *res = luaH_get(h, key); /* do a primitive get */
+      const TValue *res = ttisshrstring(key)
+                          ? luaH_getstr(h, rawtsvalue(key))
+                          : luaH_get(h, key); /* do a primitive get */
       if (!ttisnil(res) ||  /* result is not nil? */
           (tm = fasttm(L, h->metatable, TM_INDEX)) == NULL) { /* or no TM? */
         setobj2s(L, val, res);
@@ -139,7 +141,9 @@ void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
     const TValue *tm;
     if (ttistable(t)) {  /* `t' is a table? */
       Table *h = hvalue(t);
-      TValue *oldval = cast(TValue *, luaH_get(h, key));
+      TValue *oldval = cast(TValue *, ttisshrstring(key)
+                            ? luaH_getstr(h, rawtsvalue(key))
+                            : luaH_get(h, key));
       /* if previous value is not nil, there must be a previous entry
          in the table; moreover, a metamethod has no relevance */
       if (!ttisnil(oldval) ||
@@ -864,4 +868,3 @@ void luaV_execute (lua_State *L) {
     }
   }
 }
-
