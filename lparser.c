@@ -1477,6 +1477,38 @@ static void funcstat (LexState *ls, int line) {
 }
 
 
+/* LuaJIT compound assignments, restricted to the operators supported by
+** this runtime.  As in LuaJIT, the operator and '=' must be adjacent,
+** there is only one assignment target, and '^=' is not supported.
+*/
+static int compoundstat (LexState *ls, expdesc *v) {
+  FuncState *fs = ls->fs;
+  expdesc target, rhs;
+  BinOpr op = getbinopr(ls->t.token);
+  int line = ls->linenumber;
+  if (!vkisvar(v->k) || op > OPR_CONCAT || op == OPR_POW)
+    return 0;
+  check_condition(ls, ls->current == '=', "'=' expected");
+  luaX_next(ls);  /* skip operator */
+  checknext(ls, '=');
+  target = *v;
+  if (v->k == VINDEXED) {
+    int freereg = fs->freereg;
+    luaK_dischargevars(fs, v);
+    /* The read normally frees its base/key registers. Keep them alive
+    ** until the store, so a RHS expression cannot reuse them.
+    */
+    fs->freereg = freereg;
+  }
+  if (op == OPR_CONCAT) luaK_exp2nextreg(fs, v);
+  else luaK_exp2anyreg(fs, v);
+  expr(ls, &rhs);
+  luaK_posfix(fs, op, v, &rhs, line);
+  luaK_storevar(fs, &target, v);
+  return 1;
+}
+
+
 static void exprstat (LexState *ls) {
   /* stat -> func | assignment */
   FuncState *fs = ls->fs;
@@ -1486,7 +1518,7 @@ static void exprstat (LexState *ls) {
     v.prev = NULL;
     assignment(ls, &v, 1);
   }
-  else {  /* stat -> func */
+  else if (!compoundstat(ls, &v.v)) {  /* stat -> func */
     check_condition(ls, v.v.k == VCALL, "syntax error");
     SETARG_C(getcode(fs, &v.v), 1);  /* call statement uses no results */
   }
